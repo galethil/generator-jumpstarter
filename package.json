@@ -1,0 +1,15 @@
+{
+  "name": "generator-jumpstarter",
+  "version": "0.1.0",
+  "description": "",
+  "files": [
+    "generators"
+  ],
+  "keywords": [
+    "yeoman-generator"
+  ],
+  "dependencies": {
+    "enquirer": "^2.3.5",
+    "yeoman-generator": "^1.0.0"
+  }
+}
