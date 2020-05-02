@@ -1,5 +1,7 @@
-var Generator = require('yeoman-generator');
-const inquirer = require('inquirer');
+var Generator = require('../../common/generator');
+
+
+const { prompt } = require('../../common/helpers');
 
 module.exports = class extends Generator {
   // The name `constructor` is important here
@@ -7,20 +9,12 @@ module.exports = class extends Generator {
     // Calling the super constructor is important so our generator is correctly set up
     super(args, opts);
 
-    // Next, add your custom code
-    this.option('babel'); // This method adds support for a `--babel` flag
-
-    this.answers = {};
-
-    this.storeAnswer = (answerObject, modifierFunction) => {
-      Object.keys(answerObject).forEach((answerKey) => {
-        if (modifierFunction) {
-          answerObject[answerKey] = modifierFunction(answerObject[answerKey]);
-        }
-
-        this.answers = { ...this.answers, ...answerObject };
-      });
-    };
+    this.steps = [
+      {name:'basics', label:'Basics'},
+      {name:'febe', label: 'Frontend + Backend'},
+      {name: 'db', label: 'Databases'},
+      {name: 'devops', label: 'Devops'}
+    ];
   }
 
   initializing() {
@@ -28,21 +22,47 @@ module.exports = class extends Generator {
   }
 
   async prompting() {
-    this.storeAnswer(await inquirer.prompt({
+
+    await this.question({
       type: 'input',
       name: 'projectName',
       message: 'What is your project name?'
-    }));
+    });
 
-
-    this.storeAnswer(await inquirer.prompt({
+    await this.question({
       type: 'list',
-      name: 'frontend',
-      message: 'Pick a frontend that you will use',
-      choices: ['React', 'Angular', 'Vuejs', 'other', 'no frontend']
-    }));
+      name: 'git',
+      message: 'Pick a code repository that you will use.',
+      choices: [
+        { name:'Gitlab', value:'gitlab'},
+        { name:'Github', value:'github'},
+        { name:'other git repository', value:'git'},
+        { name:'no git repository (not recommended)', value:'no'}
+      ]
+    });
 
-    this.storeAnswer(await inquirer.prompt({
+    if (this.answers.git) {
+      await this.question({
+        type: 'list',
+        name: 'repositoryPattern',
+        message: 'Pick a repository pattern.',
+        choices: [
+          { name:'Monorepo (recommended)', value:'monorepo'},
+          { name:'Multirepo', value:'multirepo'}
+        ]
+      });
+    }
+
+    this.setStep('febe');
+
+    await this.question({
+      type: 'list',
+      name: 'feFramework',
+      message: 'Pick a frontend framework that you will use.',
+      choices: ['React', 'Angular', 'Vuejs', 'other', 'no frontend']
+    });
+
+    await this.question({
       type: 'input',
       name: 'backendServicesCount',
       message: 'How many backend services will you use?',
@@ -51,17 +71,15 @@ module.exports = class extends Generator {
           return 'Please input a number between 0-9.';
         }
         return true;
-      }
-    }), parseInt);
+      },
+      modifier: parseInt
+    });
 
-
-
-    // const backendServicesCount = parseInt(backendServicesCountText.backendServicesCount);
 
     const backends = [];
 
     for (let beCount = 0; beCount < this.answers.backendServicesCount; beCount++) {
-      const backend = await inquirer.prompt({
+      const backend = await prompt({
         type: 'list',
         name: 'backend',
         message: `Pick a backend technology that you will use for service n. ${beCount + 1}`,
@@ -73,19 +91,84 @@ module.exports = class extends Generator {
 
     this.storeAnswer({ backends });
 
-    this.storeAnswer(await inquirer.prompt({
+    await this.question({
+      type: 'list',
+      name: 'proxy',
+      message: 'Pick a proxy that you will use',
+      choices: [
+        { name:'nginx', value:'nginx'},
+        { name:'Reactive interaction gateway', value:'rig'},
+        { name:'other proxy', value:'other'},
+        { name:'no proxy (not recommended)', value:''}
+      ]
+    });
+
+    this.setStep('db');
+
+    await this.question({
+      type: 'checkbox',
+      name: 'db',
+      message: 'Pick databases that you will use',
+      choices: [
+        { name:'PostgresSQL', value:'postgressql'},
+        { name:'Cockroach', value:'cockroachsql'},
+        { name:'MySQL', value:'mysql'},
+        { name:'SQL server', value:'sqlserver'},
+        { name:'MongoDB', value:'mongodb'},
+        { name:'DynamoDB', value:'dynamodb'},
+        { name:'Redis', value:'redis'},
+        { name:'Memcache', value:'mem'}
+      ]
+    });
+
+    this.setStep('devops');
+
+    await this.question({
       type: 'confirm',
       message: 'Will you be using docker?',
       name: 'docker',
       default: true
-    }));
+    });
+
+    await this.question({
+      type: 'confirm',
+      message: 'Will you be using kubernetes?',
+      name: 'kubernetes',
+      default: true
+    });
+
+    await this.question({
+      type: 'list',
+      name: 'cloud',
+      message: 'Pick a cloud provider that you will use',
+      choices: [
+        { name:'AWS', value:'aws'},
+        { name:'Azure', value:'azure'},
+        { name:'Google cloud', value:'google'},
+        { name:'Other', value:'other'},
+        { name:'no cloud', value:''}
+      ]
+    });
+
+    await this.question({
+      type: 'list',
+      name: 'cloud',
+      message: 'Pick a CI/CD that you will use',
+      choices: [
+        { name:'Gitlab', value:'gitlab'},
+        { name:'Jenkins', value:'jenkins'},
+        { name:'no CI/CD', value:''}
+      ]
+    });
 
     console.log(this.answers);
 
   }
 
-  writing() {
-
+  subGenerators() {
+    if (this.answers.feFramework) {
+      this.composeWith('jumpstarter:frontend');
+    }
   }
 
   install() {
