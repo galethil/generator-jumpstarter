@@ -9,7 +9,7 @@
     "yeoman-generator"
   ],
   "dependencies": {
-    "enquirer": "^2.3.5",
+    "inquirer": "^7.1.0",
     "yeoman-generator": "^1.0.0"
   }
 }
