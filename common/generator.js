@@ -14,6 +14,9 @@ module.exports = class extends Generator {
     this.option('babel'); // This method adds support for a `--babel` flag
 
     this.answers = {};
+    if (opts.answers) {
+      this.otherAnswers = opts.answers;
+    }
 
     this.steps = [];
     this.actualStep = 0;
@@ -57,15 +60,27 @@ module.exports = class extends Generator {
     this.question = async (options) => {
       this.printSteps();
 
+      let def;
+      if (this.subgenerator) {
+        const subgeneratorConfig = this.config.get(this.subgenerator);
+        def = subgeneratorConfig[options.name];
+      } else {
+        def = this.config.get(options.name);
+      }
+
+      if (def && !options.default) {
+        options.default = def;
+      }
+
       const result = await this.prompt(options);
       this.storeAnswer(result);
     };
 
     this.storeAnswer = (answer) => {
       Object.keys(answer).forEach((key) => {
-        if (this.name) {
-          const config = this.config.get(this.name);
-          this.config.set(name, { ...config, key: answer[key]});
+        if (this.subgenerator) {
+          const config = this.config.get(this.subgenerator);
+          this.config.set(this.subgenerator, { ...config, key: answer[key]});
         } else {
           this.config.set(key, answer[key]);
         }

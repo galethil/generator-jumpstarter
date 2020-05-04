@@ -1,6 +1,5 @@
 var Generator = require('../../common/generator');
 
-
 const { prompt } = require('../../common/helpers');
 
 module.exports = class extends Generator {
@@ -161,13 +160,13 @@ module.exports = class extends Generator {
       ]
     });
 
-    console.log(this.answers);
+    this.log(this.answers);
 
   }
 
   subGenerators() {
     if (this.answers.feFramework) {
-      this.composeWith('jumpstarter:frontend');
+      this.composeWith('jumpstarter:frontend', { answers: this.answers });
     }
   }
 

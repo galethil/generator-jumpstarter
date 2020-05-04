@@ -1,14 +1,12 @@
 var Generator = require('../../common/generator');
 
-const { prompt } = require('../../common/helpers');
-
 module.exports = class extends Generator {
   // The name `constructor` is important here
   constructor(args, opts) {
     // Calling the super constructor is important so our generator is correctly set up
     super(args, opts);
 
-    this.name = 'frontend';
+    this.subgenerator = 'frontend';
   }
 
   initializing() {
@@ -17,20 +15,20 @@ module.exports = class extends Generator {
 
   async prompting() {
 
-    await this.prompt({
+    await this.question({
       type: 'input',
-      name: 'projectName',
+      name: 'folderName',
       message: 'What is folder name for frontend?'
     });
 
-    await this.prompt({
+    await this.question({
       type: 'confirm',
       message: 'Would you like to use typescript?',
       name: 'typescript',
       default: true
     });
 
-    await this.prompt({
+    await this.question({
       type: 'list',
       name: 'uiFramework',
       message: 'What UI framework do you want to use?',
@@ -40,6 +38,12 @@ module.exports = class extends Generator {
         { name:'Bootstrap', value:'bootstrap'},
       ]
     });
+  }
+
+  async writing() {
+    const mainPath = `${this.destinationRoot()}/${this.answers.folderName}/`;
+    this.fs.write(`${mainPath}test.js`, 'content');
+
   }
 
 };
