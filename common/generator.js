@@ -51,7 +51,7 @@ module.exports = class extends Generator {
         }
       });
 
-      console.clear();
+      this.clear();
       this.log(stepsText);
 
 

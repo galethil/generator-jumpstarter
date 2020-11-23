@@ -35,6 +35,7 @@ module.exports = class extends Generator {
       choices: [
         { name:'Gitlab', value:'gitlab'},
         { name:'Github', value:'github'},
+        { name:'Azure DevOps', value:'devops'},
         { name:'other git repository', value:'git'},
         { name:'no git repository (not recommended)', value:'no'}
       ]
@@ -164,10 +165,22 @@ module.exports = class extends Generator {
 
   }
 
+  writingConfigFile() {
+    const mainPath = `${this.destinationRoot()}/`;
+    this.fs.write(`${mainPath}generator.config.json`, JSON.stringify(this.answers));
+  }
+
   subGenerators() {
+    this.log(this.answers.backendServicesCount, this.answers.backendServicesCount !== 0);
+    if (this.answers.backendServicesCount !== 0) {
+      this.composeWith('jumpstarter:backend', { answers: this.answers });
+    }
+
     if (this.answers.feFramework) {
       this.composeWith('jumpstarter:frontend', { answers: this.answers });
     }
+
+
   }
 
   install() {
